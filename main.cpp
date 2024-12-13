@@ -2,6 +2,7 @@
 #include <yolov5.h>
 #include <yolov5_async.h>
 #include <yolov8.h>
+#include <yolov8_async.h>
 
 #include <chrono>
 #include <opencv2/opencv.hpp>
@@ -50,6 +51,35 @@ void yolov8_detector_speed() {
     }
 }
 
+void yolov8_async_test() {
+    function<void(AsyncYOLOV8&)> putter = [&](AsyncYOLOV8& detector) {
+        Mat image = imread("/root/rknn_framework/test1.png");
+        while (1) {
+            detector.put(image);
+            // usleep(5000);
+            detector.put(image);
+            // usleep(5000);
+        }
+    };
+
+    function<void(AsyncYOLOV8&)> getter = [&](AsyncYOLOV8& detector) {
+        while (1) {
+            auto t1 = chrono::system_clock::now();
+            auto res = detector.get();
+            usleep(6000);
+            auto t2 = chrono::system_clock::now();
+            printf("get result time cost: %.2f ms\n", chrono::duration_cast<chrono::microseconds>(t2 - t1).count() / 1000.0);
+        }
+    };
+
+    AsyncYOLOV8 detector;
+    detector.init("/root/rknn_framework/weights/yolov8n-quantify.rknn", 20, 9);
+    auto put_thread = thread(putter, ref(detector));
+    auto get_thread = thread(getter, ref(detector));
+    put_thread.join();
+    get_thread.join();
+}
+
 void yolov5_detector_test() {
     YOLOV5 detector;
     detector.init("/root/rknn_framework/weights/yolov5s-quantify.rknn", RKNN_NPU_CORE_0);
@@ -73,7 +103,7 @@ void yolov5_detector_test() {
 
 void yolov5_detector_speed() {
     YOLOV5 detector;
-    detector.init("/root/rknn_framework/weights/yolov5s-quantify.rknn", RKNN_NPU_CORE_0);
+    detector.init("/root/rknn_framework/weights/yolov5s-quantify.rknn", RKNN_NPU_CORE_0_1_2);
     Mat image = imread("/root/rknn_framework/test1.png");
     while (1) {
         auto t1 = chrono::system_clock::now();
@@ -121,5 +151,8 @@ void yolov5_async_test() {
 }
 
 int main() {
-    yolov8_detector_test();
+    // yolov5_detector_speed();
+    // yolov8_detector_speed();
+    // yolov8_detector_test();
+    yolov8_async_test();
 }

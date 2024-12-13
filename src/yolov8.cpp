@@ -1,6 +1,6 @@
+#include <math.h>
 #include <yolov8.h>
 
-#include <math.h>
 #include <functional>
 
 using namespace std;
@@ -173,8 +173,53 @@ void YOLOV8::postprocess(vector<vector<float>>& result, float conf_thresh, float
                 }
             }
         }
-
     } else {
+        for (int i = 0; i < io_num.n_output / 3; i++) {
+            int position_index = i * 3 + 0;
+            int conf_index = i * 3 + 1;
+            int box_index = i * 3 + 2;
+            float16_t* position = (float16_t*)output_buffers[position_index];
+            float16_t* conf = (float16_t*)output_buffers[conf_index];
+            float16_t* box = (float16_t*)output_buffers[box_index];
+
+            int grid_h = output_attrs[box_index].dims[2];
+            int grid_w = output_attrs[box_index].dims[3];
+            int grid_length = grid_h * grid_w;
+
+            int class_num = output_attrs[conf_index].dims[1];
+            int stride = sqrt(width * height / grid_w / grid_h);
+
+            for (int gh = 0; gh < grid_h; gh++) {
+                for (int gw = 0; gw < grid_w; gw++) {
+                    int index = gh * grid_w + gw;
+                    if (box[index] < conf_thresh)
+                        continue;
+                    float16_t max_class_prob = conf[index];
+                    int max_class_id = 0;
+                    for (int k = 1; k < class_num; k++) {
+                        float16_t prob = conf[k * grid_length + index];
+                        if (prob > max_class_prob) {
+                            max_class_id = k;
+                            max_class_prob = prob;
+                        }
+                    }
+                    if (max_class_prob < conf_thresh)
+                        continue;
+                    int position_tensor_length = output_attrs[position_index].dims[1];
+                    vector<float> position_tensor(position_tensor_length);
+                    for (int k = 0; k < position_tensor_length; k++)
+                        position_tensor[k] = position[index + k * grid_length];
+                    vector<float> position = computeDfl(position_tensor);
+                    float x0 = (-position[0] + gw + 0.5) * stride;
+                    float y0 = (-position[1] + gh + 0.5) * stride;
+                    float x1 = (position[2] + gw + 0.5) * stride;
+                    float y1 = (position[3] + gh + 0.5) * stride;
+                    float class_id = max_class_id;
+                    float conf = max_class_prob;
+                    result.push_back({x0, y0, x1, y1, class_id, conf});
+                }
+            }
+        }
     }
 
     nms(result, iou_thresh);

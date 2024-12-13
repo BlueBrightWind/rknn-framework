@@ -1,5 +1,5 @@
-#ifndef ASYNC_BASE_MODEL
-#define ASYNC_BASE_MODEL
+#ifndef ASYNC_MODULE
+#define ASYNC_MODULE
 
 #include <model.h>
 

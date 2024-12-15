@@ -396,6 +396,6 @@ int main() {
     // yolov8_detector_test();
 
     // yolov8_pose_test();
-    // yolov8_pose_speed();
-    yolov8_pose_async_test();
+    yolov8_pose_speed();
+    // yolov8_pose_async_test();
 }

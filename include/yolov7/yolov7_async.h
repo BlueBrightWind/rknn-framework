@@ -1,11 +1,11 @@
-#include <yolo11.h>
-#include <async.hpp>
+#include <yolov7/yolov7.h>
+#include <base/async.hpp>
 
 using namespace std;
 
-class AsyncYOLO11 : public AsyncModule<Mat, vector<vector<float>>> {
+class AsyncYOLOV7 : public AsyncModule<Mat, vector<vector<float>>> {
    private:
-    vector<YOLO11> detectors;
+    vector<YOLOV7> detectors;
 
    private:
     vector<vector<float>> process(Mat data, int worker_id);

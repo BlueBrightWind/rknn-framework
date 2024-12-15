@@ -1,15 +1,15 @@
 #include <unistd.h>
-#include <yolov7_async.h>
+#include <yolov8/yolov8_async.h>
 
 using namespace std;
 
-vector<vector<float>> AsyncYOLOV7::process(Mat data, int worker_id) {
+vector<vector<float>> AsyncYOLOV8::process(Mat data, int worker_id) {
     detectors[worker_id].inputImage(data);
     detectors[worker_id].run();
     return detectors[worker_id].getResult();
 }
 
-bool AsyncYOLOV7::init(string path, size_t buffer_length, size_t thread_num) {
+bool AsyncYOLOV8::init(string path, size_t buffer_length, size_t thread_num) {
     detectors.resize(thread_num);
     for (int i = 0; i < thread_num; i++) {
         switch (i % 3) {
@@ -33,7 +33,7 @@ bool AsyncYOLOV7::init(string path, size_t buffer_length, size_t thread_num) {
     return true;
 }
 
-void AsyncYOLOV7::destroy() {
+void AsyncYOLOV8::destroy() {
     AsyncModule::destroy();
     detectors.clear();
     return;

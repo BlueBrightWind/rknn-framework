@@ -1,15 +1,15 @@
 #include <unistd.h>
-#include <yolov8_pose_async.h>
+#include <yolo11/yolo11_async.h>
 
 using namespace std;
 
-pair<vector<vector<float>>, vector<vector<vector<float>>>> AsyncYOLOV8POSE::process(Mat data, int worker_id) {
+vector<vector<float>> AsyncYOLO11::process(Mat data, int worker_id) {
     detectors[worker_id].inputImage(data);
     detectors[worker_id].run();
     return detectors[worker_id].getResult();
 }
 
-bool AsyncYOLOV8POSE::init(string path, size_t buffer_length, size_t thread_num) {
+bool AsyncYOLO11::init(string path, size_t buffer_length, size_t thread_num) {
     detectors.resize(thread_num);
     for (int i = 0; i < thread_num; i++) {
         switch (i % 3) {
@@ -33,7 +33,7 @@ bool AsyncYOLOV8POSE::init(string path, size_t buffer_length, size_t thread_num)
     return true;
 }
 
-void AsyncYOLOV8POSE::destroy() {
+void AsyncYOLO11::destroy() {
     AsyncModule::destroy();
     detectors.clear();
     return;

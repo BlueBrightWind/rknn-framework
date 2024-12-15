@@ -1,7 +1,7 @@
 #ifndef YOLOV8_POSE_DETECTOR
 #define YOLOV8_POSE_DETECTOR
 
-#include <model.h>
+#include <base/model.h>
 
 #include <iostream>
 #include <opencv2/opencv.hpp>

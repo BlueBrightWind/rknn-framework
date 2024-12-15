@@ -1,7 +1,7 @@
-#ifndef YOLOV5_DETECTOR
-#define YOLOV5_DETECTOR
+#ifndef YOLO11_DETECTOR
+#define YOLO11_DETECTOR
 
-#include <model.h>
+#include <base/model.h>
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -9,7 +9,7 @@
 using namespace std;
 using namespace cv;
 
-class YOLOV5 : public BaseModel {
+class YOLO11 : public BaseModel {
    private:
     vector<float> transform_matrix;
     bool is_quant;

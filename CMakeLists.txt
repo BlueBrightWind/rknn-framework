@@ -13,7 +13,7 @@ message(STATUS "RKNN INCLUDE DIR: "${RKNN_INCLUDE_DIRS})
 include_directories(${RKNN_INCLUDE_DIRS})
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
-file(GLOB FRAMEWORK_SRC ${PROJECT_SOURCE_DIR}/src/*)
+file(GLOB_RECURSE FRAMEWORK_SRC ${PROJECT_SOURCE_DIR}/src/*)
 
 add_executable(demo main.cpp ${FRAMEWORK_SRC})
 target_link_libraries(demo ${OpenCV_LIBS} ${RKNN_LIBS})

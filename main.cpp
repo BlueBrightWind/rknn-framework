@@ -1,14 +1,14 @@
 #include <unistd.h>
-#include <yolo11.h>
-#include <yolo11_async.h>
-#include <yolov5.h>
-#include <yolov5_async.h>
-#include <yolov7.h>
-#include <yolov7_async.h>
-#include <yolov8.h>
-#include <yolov8_async.h>
-#include <yolov8_pose.h>
-#include <yolov8_pose_async.h>
+#include <yolo11/yolo11.h>
+#include <yolo11/yolo11_async.h>
+#include <yolov5/yolov5.h>
+#include <yolov5/yolov5_async.h>
+#include <yolov7/yolov7.h>
+#include <yolov7/yolov7_async.h>
+#include <yolov8/yolov8.h>
+#include <yolov8/yolov8_async.h>
+#include <yolov8_pose/yolov8_pose.h>
+#include <yolov8_pose/yolov8_pose_async.h>
 
 #include <chrono>
 #include <opencv2/opencv.hpp>
@@ -395,7 +395,7 @@ int main() {
     // yolov8_detector_speed();
     // yolov8_detector_test();
 
-    yolov8_pose_test();
+    // yolov8_pose_test();
     // yolov8_pose_speed();
-    // yolov8_pose_async_test();
+    yolov8_pose_async_test();
 }

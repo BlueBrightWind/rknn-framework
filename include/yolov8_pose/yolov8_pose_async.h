@@ -1,5 +1,5 @@
-#include <yolov8_pose.h>
-#include <async.hpp>
+#include <yolov8_pose/yolov8_pose.h>
+#include <base/async.hpp>
 
 using namespace std;
 

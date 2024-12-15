@@ -1,5 +1,5 @@
 #include <math.h>
-#include <yolov8_pose.h>
+#include <yolov8_pose/yolov8_pose.h>
 
 #include <functional>
 

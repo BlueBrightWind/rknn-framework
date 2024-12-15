@@ -1,7 +1,7 @@
 #ifndef ASYNC_MODULE
 #define ASYNC_MODULE
 
-#include <model.h>
+#include <base/model.h>
 
 #include <atomic>
 #include <condition_variable>
@@ -15,10 +15,10 @@ using namespace std;
 /*
  *! @brief Encapsulation of multithreaded asynchronous inference.
  *  @param process() Return the output results based on the given input data.
- *  @attention The internal buffer is shallow-copied. If using pointers or structures containing pointers, 
- *  be mindful of when the memory pointed to by the pointers is released. Make sure to release the memory 
+ *  @attention The internal buffer is shallow-copied. If using pointers or structures containing pointers,
+ *  be mindful of when the memory pointed to by the pointers is released. Make sure to release the memory
  *  after executing process().
- */ 
+ */
 template <class input_type, class output_type>
 class AsyncModule {
    private:

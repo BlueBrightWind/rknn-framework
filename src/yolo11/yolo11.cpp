@@ -1,5 +1,5 @@
 #include <math.h>
-#include <yolo11.h>
+#include <yolo11/yolo11.h>
 
 #include <functional>
 

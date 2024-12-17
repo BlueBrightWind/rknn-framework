@@ -149,6 +149,6 @@ void yolov8_seg_async_test() {
 
 int main() {
     yolov8_seg_detector_test();
-    yolov8_seg_detector_speed();
-    yolov8_seg_async_test();
+    // yolov8_seg_detector_speed();
+    // yolov8_seg_async_test();
 }

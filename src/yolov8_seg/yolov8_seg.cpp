@@ -293,56 +293,47 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
     }
 
     // Resize Matrix
-    vector<vector<float>> masks(segments.size(), vector<float>(height * width));
+    vector<Mat> mats(segments.size());
     for (int i = 0; i < segments.size(); i++) {
-        Mat src_image(proto_height, proto_width, CV_32F, mat[i].data());
-        Mat dst_image;
-        resize(src_image, dst_image, Size(width, height), 0, 0, INTER_LINEAR);
-        memcpy(masks[i].data(), dst_image.data, dst_image.total() * dst_image.elemSize());
+        Mat data(proto_height, proto_width, CV_32F, mat[i].data());
+        resize(data, mats[i], Size(width, height), 0, 0, INTER_LINEAR);
     }
 
     // Get Origin Mask
-    vector<vector<float>> origin_mask(height, vector<float>(width, -1.0f));
-    for (int k = 0; k < segments.size(); k++) {
-        float x1 = boxes[k][0];
-        float y1 = boxes[k][1];
-        float x2 = boxes[k][2];
-        float y2 = boxes[k][3];
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                if (j < x1 || j > x2 || i < y1 || i > y2)
-                    continue;
-                if (origin_mask[i][j] != -1.0f)
-                    continue;
-                if (masks[k][i * width + j] > 0)
-                    origin_mask[i][j] = boxes[k][4];
-            }
-        }
+    Mat origin_mask(height, width, CV_32F, Scalar(-1.0));
+    for (int i = 0; i < segments.size(); i++) {
+        float x1 = boxes[i][0];
+        float y1 = boxes[i][1];
+        float x2 = boxes[i][2];
+        float y2 = boxes[i][3];
+        float class_id = boxes[i][4];
+
+        Mat mat = mats[i];
+        Rect roi(Point(x1, y1), Point(x2, y2));
+
+        Mat origin_mask_roi = origin_mask(roi);
+        Mat mat_roi = mat(roi);
+
+        Mat mask_mat_set = (mat_roi > 0);
+        mat_roi.setTo(class_id, mask_mat_set);
+
+        Mat mask_mat_copy = (origin_mask_roi == -1.0);
+        mat_roi.copyTo(origin_mask_roi, mask_mat_copy);
     }
 
     // Crop Mask
     int crop_width = input_size[0] * transform_matrix[2];
     int crop_height = input_size[1] * transform_matrix[2];
-    vector<float> crop_mask(crop_width * crop_height);
     int x_min = transform_matrix[0];
     int y_min = transform_matrix[1];
     int x_max = x_min + crop_width;
     int y_max = y_min + crop_height;
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            if (i < y_min || i > y_max || j < x_min || j > x_max)
-                continue;
-            int crop_y = i - y_min;
-            int crop_x = j - x_min;
-            crop_mask[crop_y * crop_width + crop_x] = origin_mask[i][j];
-        }
-    }
+    Mat crop_mask = origin_mask(Rect(Point(x_min, y_min), Point(x_max, y_max)));
 
     // Reverse Mask
-    Mat src_image(crop_height, crop_width, CV_32F, crop_mask.data());
-    Mat dst_image;
-    resize(src_image, dst_image, Size(input_size[0], input_size[1]), 0, 0, INTER_LINEAR);
-    vector<float> mask_data = dst_image.reshape(1, 1);
+    Mat image_mask;
+    resize(crop_mask, image_mask, Size(input_size[0], input_size[1]), 0, 0, INTER_LINEAR);
+    vector<float> mask_data = image_mask.reshape(1, 1);
     mask.resize(input_size[1]);
     for (int i = 0; i < mask.size(); i++) {
         mask[i].resize(input_size[0]);

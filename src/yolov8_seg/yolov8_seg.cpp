@@ -4,11 +4,8 @@
 
 #include <functional>
 
-#include <chrono>
-
 using namespace std;
 using namespace cv;
-using namespace chrono;
 
 bool YOLOV8SEG::init(string path, rknn_core_mask core_mask) {
     if (!BaseModel::init(path, core_mask))
@@ -126,8 +123,6 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
     int width = input_attrs[0].dims[2];
     vector<vector<float>> segments_all;
     vector<vector<float>> segments;
-
-    auto t1 = chrono::system_clock::now();
 
     if (this->is_quant) {
         for (int i = 0; i < io_num.n_output / 4; i++) {
@@ -256,15 +251,11 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
         }
     }
 
-    auto t2 = chrono::system_clock::now();
-
     // Apply NMS for Boxes and Segments
     nms(boxes, iou_thresh);
     segments.resize(boxes.size());
     for (int i = 0; i < boxes.size(); i++)
         segments[i] = segments_all[boxes[i][6]];
-
-    auto t3 = chrono::system_clock::now();
 
     int proto_height = output_attrs[io_num.n_output - 1].dims[2];
     int proto_width = output_attrs[io_num.n_output - 1].dims[3];
@@ -290,8 +281,6 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
         }
     }
 
-    auto t4 = chrono::system_clock::now();
-
     // Matrix Multiplication
     vector<vector<float>> mat(segments.size(), vector<float>(proto_height * proto_width));
     for (int i = 0; i < segments.size(); i++) {
@@ -303,8 +292,6 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
         }
     }
 
-    auto t5 = chrono::system_clock::now();
-
     // Resize Matrix
     vector<vector<float>> masks(segments.size(), vector<float>(height * width));
     for (int i = 0; i < segments.size(); i++) {
@@ -313,8 +300,6 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
         resize(src_image, dst_image, Size(width, height), 0, 0, INTER_LINEAR);
         memcpy(masks[i].data(), dst_image.data, dst_image.total() * dst_image.elemSize());
     }
-
-    auto t6 = chrono::system_clock::now();
 
     // Get Origin Mask
     vector<vector<float>> origin_mask(height, vector<float>(width, -1.0f));
@@ -335,8 +320,6 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
         }
     }
 
-    auto t7 = chrono::system_clock::now();
-
     // Crop Mask
     int crop_width = input_size[0] * transform_matrix[2];
     int crop_height = input_size[1] * transform_matrix[2];
@@ -355,8 +338,6 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
         }
     }
 
-    auto t8 = chrono::system_clock::now();
-
     // Reverse Mask
     Mat src_image(crop_height, crop_width, CV_32F, crop_mask.data());
     Mat dst_image;
@@ -370,8 +351,6 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
         memcpy(mask[i].data(), row_ptr, input_size[0] * sizeof(float));
     }
 
-    auto t9 = chrono::system_clock::now();
-
     for (auto& box : boxes) {
         box[0] = (box[0] - transform_matrix[0]) / transform_matrix[2];
         box[1] = (box[1] - transform_matrix[1]) / transform_matrix[2];
@@ -379,15 +358,6 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
         box[3] = (box[3] - transform_matrix[1]) / transform_matrix[2];
         box.pop_back();
     }
-
-    printf("Part1 Cost: %.2f ms\n", duration_cast<microseconds>(t2 - t1).count() / 1000.0);
-    printf("Part2 Cost: %.2f ms\n", duration_cast<microseconds>(t3 - t2).count() / 1000.0);
-    printf("Part3 Cost: %.2f ms\n", duration_cast<microseconds>(t4 - t3).count() / 1000.0);
-    printf("Part4 Cost: %.2f ms\n", duration_cast<microseconds>(t5 - t4).count() / 1000.0);
-    printf("Part5 Cost: %.2f ms\n", duration_cast<microseconds>(t6 - t5).count() / 1000.0);
-    printf("Part6 Cost: %.2f ms\n", duration_cast<microseconds>(t7 - t6).count() / 1000.0);
-    printf("Part7 Cost: %.2f ms\n", duration_cast<microseconds>(t8 - t7).count() / 1000.0);
-    printf("Part8 Cost: %.2f ms\n", duration_cast<microseconds>(t9 - t8).count() / 1000.0);
 }
 
 bool YOLOV8SEG::inputImage(Mat& image) {

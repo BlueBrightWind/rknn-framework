@@ -300,7 +300,7 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
     }
 
     // Get Origin Mask
-    Mat origin_mask(height, width, CV_32F, Scalar(-1.0));
+    Mat origin_mask(height, width, CV_32F, -1.0f);
     for (int i = 0; i < segments.size(); i++) {
         float x1 = boxes[i][0];
         float y1 = boxes[i][1];
@@ -308,17 +308,13 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
         float y2 = boxes[i][3];
         float class_id = boxes[i][4];
 
-        Mat mat = mats[i];
         Rect roi(Point(x1, y1), Point(x2, y2));
-
         Mat origin_mask_roi = origin_mask(roi);
-        Mat mat_roi = mat(roi);
+        Mat mat_roi = mats[i](roi);
 
         Mat mask_mat_set = (mat_roi > 0);
-        mat_roi.setTo(class_id, mask_mat_set);
-
-        Mat mask_mat_copy = (origin_mask_roi == -1.0);
-        mat_roi.copyTo(origin_mask_roi, mask_mat_copy);
+        Mat mask_mat_copy = (origin_mask_roi < 0);
+        origin_mask_roi.setTo(class_id, mask_mat_set & mask_mat_copy);
     }
 
     // Crop Mask

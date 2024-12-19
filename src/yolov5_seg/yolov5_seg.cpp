@@ -122,11 +122,11 @@ void YOLOV5SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
 
             int grid_h = output_attrs[box_index].dims[2];
             int grid_w = output_attrs[box_index].dims[3];
-            int grid_len = grid_h * grid_w;
+            int grid_length = grid_h * grid_w;
 
             int class_num = output_attrs[box_index].dims[1] / anchor_num - 5;
-            int prop_box_size = class_num + 5;
-            int segment_size = output_attrs[seg_index].dims[1] / anchor_num;
+            int prop_box_length = class_num + 5;
+            int segment_length = output_attrs[seg_index].dims[1] / anchor_num;
 
             int8_t thres_i8 = qntFp32ToAffine(conf_thresh, box_zp, box_scale);
             int stride = sqrt(width * height / grid_w / grid_h);
@@ -134,24 +134,24 @@ void YOLOV5SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
             for (int gh = 0; gh < grid_h; gh++) {
                 for (int gw = 0; gw < grid_w; gw++) {
                     for (int anchor_index = 0; anchor_index < anchor_num; anchor_index++) {
-                        int8_t box_confidence = box[(prop_box_size * anchor_index + 4) * grid_len + gh * grid_w + gw];
+                        int8_t box_confidence = box[(prop_box_length * anchor_index + 4) * grid_length + gh * grid_w + gw];
                         if (box_confidence < thres_i8)
                             continue;
-                        int box_offset = (prop_box_size * anchor_index) * grid_len + gh * grid_w + gw;
+                        int box_offset = (prop_box_length * anchor_index) * grid_length + gh * grid_w + gw;
                         int8_t* in_ptr = box + box_offset;
                         float box_x = deqntAffineToFp32(*in_ptr, box_zp, box_scale) * 2.0 - 0.5;
-                        float box_y = deqntAffineToFp32(in_ptr[grid_len], box_zp, box_scale) * 2.0 - 0.5;
-                        float box_w = deqntAffineToFp32(in_ptr[2 * grid_len], box_zp, box_scale) * 2.0;
-                        float box_h = deqntAffineToFp32(in_ptr[3 * grid_len], box_zp, box_scale) * 2.0;
+                        float box_y = deqntAffineToFp32(in_ptr[grid_length], box_zp, box_scale) * 2.0 - 0.5;
+                        float box_w = deqntAffineToFp32(in_ptr[2 * grid_length], box_zp, box_scale) * 2.0;
+                        float box_h = deqntAffineToFp32(in_ptr[3 * grid_length], box_zp, box_scale) * 2.0;
                         box_x = (box_x + gw) * (float)stride;
                         box_y = (box_y + gh) * (float)stride;
                         box_w = box_w * box_w * (float)anchors[i][anchor_index * 2];
                         box_h = box_h * box_h * (float)anchors[i][anchor_index * 2 + 1];
 
-                        int8_t max_class_prob = in_ptr[5 * grid_len];
+                        int8_t max_class_prob = in_ptr[5 * grid_length];
                         int max_class_id = 0;
                         for (int k = 1; k < class_num; ++k) {
-                            int8_t prob = in_ptr[(5 + k) * grid_len];
+                            int8_t prob = in_ptr[(5 + k) * grid_length];
                             if (prob > max_class_prob) {
                                 max_class_id = k;
                                 max_class_prob = prob;
@@ -166,24 +166,24 @@ void YOLOV5SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
                         float w = box_w;
                         float h = box_h;
 
-                        float x0 = x_center - w * 0.5f;
-                        float y0 = y_center - h * 0.5f;
-                        float x1 = x_center + w * 0.5f;
-                        float y1 = y_center + h * 0.5f;
+                        float x1 = x_center - w * 0.5f;
+                        float y1 = y_center - h * 0.5f;
+                        float x2 = x_center + w * 0.5f;
+                        float y2 = y_center + h * 0.5f;
 
-                        x0 = max(min(x0, (float)(width - 1)), 0.f);
-                        y0 = max(min(y0, (float)(height - 1)), 0.f);
                         x1 = max(min(x1, (float)(width - 1)), 0.f);
                         y1 = max(min(y1, (float)(height - 1)), 0.f);
+                        x2 = max(min(x2, (float)(width - 1)), 0.f);
+                        y2 = max(min(y2, (float)(height - 1)), 0.f);
                         float conf = deqntAffineToFp32(max_class_prob, box_zp, box_scale);
                         float class_id = max_class_id;
                         float box_index = boxes.size();
-                        boxes.push_back({x0, y0, x1, y1, class_id, conf, box_index});
+                        boxes.push_back({x1, y1, x2, y2, class_id, conf, box_index});
 
-                        vector<float> segment_tensor(segment_size);
-                        int seg_offset = (segment_size * anchor_index) * grid_len + gh * grid_w + gw;
-                        for (int k = 0; k < segment_size; k++)
-                            segment_tensor[k] = deqntAffineToFp32(seg[seg_offset + k * grid_len], seg_zp, seg_scale);
+                        vector<float> segment_tensor(segment_length);
+                        int seg_offset = (segment_length * anchor_index) * grid_length + gh * grid_w + gw;
+                        for (int k = 0; k < segment_length; k++)
+                            segment_tensor[k] = deqntAffineToFp32(seg[seg_offset + k * grid_length], seg_zp, seg_scale);
                         segments_all.push_back(segment_tensor);
                     }
                 }
@@ -198,35 +198,35 @@ void YOLOV5SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
 
             int grid_h = output_attrs[box_index].dims[2];
             int grid_w = output_attrs[box_index].dims[3];
-            int grid_len = grid_h * grid_w;
+            int grid_length = grid_h * grid_w;
 
             int class_num = output_attrs[box_index].dims[1] / anchor_num - 5;
-            int prop_box_size = class_num + 5;
-            int segment_size = output_attrs[seg_index].dims[1] / anchor_num;
+            int prop_box_length = class_num + 5;
+            int segment_length = output_attrs[seg_index].dims[1] / anchor_num;
 
             int stride = sqrt(width * height / grid_w / grid_h);
 
             for (int gh = 0; gh < grid_h; gh++) {
                 for (int gw = 0; gw < grid_w; gw++) {
                     for (int anchor_index = 0; anchor_index < anchor_num; anchor_index++) {
-                        float16_t box_confidence = box[(prop_box_size * anchor_index + 4) * grid_len + gh * grid_w + gw];
+                        float16_t box_confidence = box[(prop_box_length * anchor_index + 4) * grid_length + gh * grid_w + gw];
                         if (box_confidence < conf_thresh)
                             continue;
-                        int box_offset = (prop_box_size * anchor_index) * grid_len + gh * grid_w + gw;
+                        int box_offset = (prop_box_length * anchor_index) * grid_length + gh * grid_w + gw;
                         float16_t* in_ptr = box + box_offset;
                         float box_x = in_ptr[0] * 2.0 - 0.5;
-                        float box_y = in_ptr[grid_len] * 2.0 - 0.5;
-                        float box_w = in_ptr[2 * grid_len] * 2.0;
-                        float box_h = in_ptr[3 * grid_len] * 2.0;
+                        float box_y = in_ptr[grid_length] * 2.0 - 0.5;
+                        float box_w = in_ptr[2 * grid_length] * 2.0;
+                        float box_h = in_ptr[3 * grid_length] * 2.0;
                         box_x = (box_x + gw) * (float)stride;
                         box_y = (box_y + gh) * (float)stride;
                         box_w = box_w * box_w * (float)anchors[i][anchor_index * 2];
                         box_h = box_h * box_h * (float)anchors[i][anchor_index * 2 + 1];
 
-                        float16_t max_class_prob = in_ptr[5 * grid_len];
+                        float16_t max_class_prob = in_ptr[5 * grid_length];
                         int max_class_id = 0;
                         for (int k = 1; k < class_num; ++k) {
-                            float16_t prob = in_ptr[(5 + k) * grid_len];
+                            float16_t prob = in_ptr[(5 + k) * grid_length];
                             if (prob > max_class_prob) {
                                 max_class_id = k;
                                 max_class_prob = prob;
@@ -241,24 +241,24 @@ void YOLOV5SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
                         float w = box_w;
                         float h = box_h;
 
-                        float x0 = x_center - w * 0.5f;
-                        float y0 = y_center - h * 0.5f;
-                        float x1 = x_center + w * 0.5f;
-                        float y1 = y_center + h * 0.5f;
+                        float x1 = x_center - w * 0.5f;
+                        float y1 = y_center - h * 0.5f;
+                        float x2 = x_center + w * 0.5f;
+                        float y2 = y_center + h * 0.5f;
 
-                        x0 = max(min(x0, (float)(width - 1)), 0.f);
-                        y0 = max(min(y0, (float)(height - 1)), 0.f);
                         x1 = max(min(x1, (float)(width - 1)), 0.f);
                         y1 = max(min(y1, (float)(height - 1)), 0.f);
+                        x2 = max(min(x2, (float)(width - 1)), 0.f);
+                        y2 = max(min(y2, (float)(height - 1)), 0.f);
                         float conf = max_class_prob;
                         float class_id = max_class_id;
                         float box_index = boxes.size();
-                        boxes.push_back({x0, y0, x1, y1, class_id, conf, box_index});
+                        boxes.push_back({x1, y1, x2, y2, class_id, conf, box_index});
 
-                        vector<float> segment_tensor(segment_size);
-                        int seg_offset = (segment_size * anchor_index) * grid_len + gh * grid_w + gw;
-                        for (int k = 0; k < segment_size; k++)
-                            segment_tensor[k] = seg[seg_offset + k * grid_len];
+                        vector<float> segment_tensor(segment_length);
+                        int seg_offset = (segment_length * anchor_index) * grid_length + gh * grid_w + gw;
+                        for (int k = 0; k < segment_length; k++)
+                            segment_tensor[k] = seg[seg_offset + k * grid_length];
                         segments_all.push_back(segment_tensor);
                     }
                 }

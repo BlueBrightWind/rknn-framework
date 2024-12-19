@@ -163,13 +163,13 @@ void YOLOV8::postprocess(vector<vector<float>>& result, float conf_thresh, float
                     for (int k = 0; k < position_tensor_length; k++)
                         position_tensor[k] = deqntAffineToFp32(position[index + k * grid_length], position_zp, position_scale);
                     vector<float> position = computeDfl(position_tensor);
-                    float x0 = (-position[0] + gw + 0.5) * stride;
-                    float y0 = (-position[1] + gh + 0.5) * stride;
-                    float x1 = (position[2] + gw + 0.5) * stride;
-                    float y1 = (position[3] + gh + 0.5) * stride;
+                    float x1 = (-position[0] + gw + 0.5) * stride;
+                    float y1 = (-position[1] + gh + 0.5) * stride;
+                    float x2 = (position[2] + gw + 0.5) * stride;
+                    float y2 = (position[3] + gh + 0.5) * stride;
                     float class_id = max_class_id;
                     float conf = deqntAffineToFp32(max_class_prob, conf_zp, conf_scale);
-                    result.push_back({x0, y0, x1, y1, class_id, conf});
+                    result.push_back({x1, y1, x2, y2, class_id, conf});
                 }
             }
         }
@@ -210,13 +210,13 @@ void YOLOV8::postprocess(vector<vector<float>>& result, float conf_thresh, float
                     for (int k = 0; k < position_tensor_length; k++)
                         position_tensor[k] = position[index + k * grid_length];
                     vector<float> position = computeDfl(position_tensor);
-                    float x0 = (-position[0] + gw + 0.5) * stride;
-                    float y0 = (-position[1] + gh + 0.5) * stride;
-                    float x1 = (position[2] + gw + 0.5) * stride;
-                    float y1 = (position[3] + gh + 0.5) * stride;
+                    float x1 = (-position[0] + gw + 0.5) * stride;
+                    float y1 = (-position[1] + gh + 0.5) * stride;
+                    float x2 = (position[2] + gw + 0.5) * stride;
+                    float y2 = (position[3] + gh + 0.5) * stride;
                     float class_id = max_class_id;
                     float conf = max_class_prob;
-                    result.push_back({x0, y0, x1, y1, class_id, conf});
+                    result.push_back({x1, y1, x2, y2, class_id, conf});
                 }
             }
         }

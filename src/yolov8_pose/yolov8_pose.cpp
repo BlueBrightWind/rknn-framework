@@ -5,6 +5,8 @@
 
 using namespace std;
 
+static int dfl_length = 16;
+
 bool YOLOV8POSE::init(string path, rknn_core_mask core_mask) {
     if (!BaseModel::init(path, core_mask))
         return false;
@@ -116,7 +118,6 @@ void YOLOV8POSE::postprocess(vector<vector<float>>& boxes, vector<vector<vector<
 
     int height = input_attrs[0].dims[1];
     int width = input_attrs[0].dims[2];
-    int dfl_length = 16;
     int position_length = dfl_length * 4;
 
     if (this->is_quant) {

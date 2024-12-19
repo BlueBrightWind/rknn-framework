@@ -6,6 +6,7 @@
 using namespace std;
 
 static int anchors[3][6] = {{10, 13, 16, 30, 33, 23}, {30, 61, 62, 45, 59, 119}, {116, 90, 156, 198, 373, 326}};
+static int anchor_num = 3;
 
 bool YOLOV5::init(string path, rknn_core_mask core_mask) {
     if (!BaseModel::init(path, core_mask))
@@ -99,7 +100,6 @@ void YOLOV5::postprocess(vector<vector<float>>& result, float conf_thresh, float
 
     int height = input_attrs[0].dims[1];
     int width = input_attrs[0].dims[2];
-    int anchor_num = 3;
 
     if (this->is_quant) {
         for (int i = 0; i < output_buffers.size(); i++) {

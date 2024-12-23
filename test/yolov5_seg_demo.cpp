@@ -65,15 +65,15 @@ void yolov5_seg_detector_test() {
     int width = image.cols;
     int height = image.rows;
     float alpha = 0.5f;
-    vector<vector<float>>& mask = res.second;
+    Mat& mask = res.second;
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
-            if (mask[i][j] == -1)
+            if (mask.at<float>(i, j) < 0)
                 continue;
             int pixel_offset = 3 * (i * width + j);
-            image.data[pixel_offset + 0] = (unsigned char)clamp(class_colors[(int)mask[i][j] % num_colors][0] * (1 - alpha) + image.data[pixel_offset + 0] * alpha, 0, 255);  // r
-            image.data[pixel_offset + 1] = (unsigned char)clamp(class_colors[(int)mask[i][j] % num_colors][1] * (1 - alpha) + image.data[pixel_offset + 1] * alpha, 0, 255);  // r
-            image.data[pixel_offset + 2] = (unsigned char)clamp(class_colors[(int)mask[i][j] % num_colors][2] * (1 - alpha) + image.data[pixel_offset + 2] * alpha, 0, 255);  // r
+            image.data[pixel_offset + 0] = (unsigned char)clamp(class_colors[(int)mask.at<float>(i, j) % num_colors][0] * (1 - alpha) + image.data[pixel_offset + 0] * alpha, 0, 255);  // r
+            image.data[pixel_offset + 1] = (unsigned char)clamp(class_colors[(int)mask.at<float>(i, j) % num_colors][1] * (1 - alpha) + image.data[pixel_offset + 1] * alpha, 0, 255);  // g
+            image.data[pixel_offset + 2] = (unsigned char)clamp(class_colors[(int)mask.at<float>(i, j) % num_colors][2] * (1 - alpha) + image.data[pixel_offset + 2] * alpha, 0, 255);  // b
         }
     }
 

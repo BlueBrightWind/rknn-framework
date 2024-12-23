@@ -17,12 +17,12 @@ class YOLOV8SEG : public BaseModel {
 
    private:
     void preprocess(Mat& image);
-    void postprocess(vector<vector<float>>& boxes, vector<vector<float>>& mask, float conf_thresh, float iou_thresh);
+    void postprocess(vector<vector<float>>& boxes, Mat& mask, float conf_thresh, float iou_thresh);
 
    public:
     bool init(string path, rknn_core_mask core_mask);
     bool inputImage(Mat& image);
-    pair<vector<vector<float>>, vector<vector<float>>> getResult(float conf_thresh = 0.2, float iou_thresh = 0.4);
+    pair<vector<vector<float>>, Mat> getResult(float conf_thresh = 0.2, float iou_thresh = 0.4);
 };
 
 #endif

@@ -3,12 +3,12 @@
 
 using namespace std;
 
-class AsyncYOLOV5SEG : public AsyncModule<Mat, pair<vector<vector<float>>, vector<vector<float>>>> {
+class AsyncYOLOV5SEG : public AsyncModule<Mat, pair<vector<vector<float>>, Mat>> {
    private:
     vector<YOLOV5SEG> detectors;
 
    private:
-    pair<vector<vector<float>>, vector<vector<float>>> process(Mat data, int worker_id);
+    pair<vector<vector<float>>, Mat> process(Mat data, int worker_id);
 
    public:
     bool init(string path, size_t buffer_length, size_t thread_num);

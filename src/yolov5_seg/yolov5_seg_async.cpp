@@ -3,7 +3,7 @@
 
 using namespace std;
 
-pair<vector<vector<float>>, vector<vector<float>>> AsyncYOLOV5SEG::process(Mat data, int worker_id) {
+pair<vector<vector<float>>, Mat> AsyncYOLOV5SEG::process(Mat data, int worker_id) {
     detectors[worker_id].inputImage(data);
     detectors[worker_id].run();
     return detectors[worker_id].getResult();

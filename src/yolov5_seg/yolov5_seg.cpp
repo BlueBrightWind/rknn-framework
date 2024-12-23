@@ -39,7 +39,7 @@ void YOLOV5SEG::preprocess(Mat& data) {
     copyMakeBorder(data, data, dy / 2, dy - dy / 2, dx / 2, dx - dx / 2, BORDER_CONSTANT);
 }
 
-void YOLOV5SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>& mask, float conf_thresh, float iou_thresh) {
+void YOLOV5SEG::postprocess(vector<vector<float>>& boxes, Mat& mask, float conf_thresh, float iou_thresh) {
     function<int32_t(float, float, float)> clipValue = [&](float val, float min, float max) {
         float f = val <= min ? min : (val >= max ? max : val);
         return f;
@@ -342,16 +342,7 @@ void YOLOV5SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
     Mat crop_mask = origin_mask(Rect(Point(x_min, y_min), Point(x_max, y_max)));
 
     // Reverse Mask
-    Mat image_mask;
-    resize(crop_mask, image_mask, Size(input_size[0], input_size[1]), 0, 0, INTER_LINEAR);
-    vector<float> mask_data = image_mask.reshape(1, 1);
-    mask.resize(input_size[1]);
-    for (int i = 0; i < mask.size(); i++) {
-        mask[i].resize(input_size[0]);
-        int offset = i * input_size[0];
-        float* row_ptr = mask_data.data() + offset;
-        memcpy(mask[i].data(), row_ptr, input_size[0] * sizeof(float));
-    }
+    resize(crop_mask, mask, Size(input_size[0], input_size[1]), 0, 0, INTER_LINEAR);
 
     for (auto& box : boxes) {
         box[0] = (box[0] - transform_matrix[0]) / transform_matrix[2];
@@ -371,9 +362,9 @@ bool YOLOV5SEG::inputImage(Mat& image) {
     return true;
 }
 
-pair<vector<vector<float>>, vector<vector<float>>> YOLOV5SEG::getResult(float conf_thresh, float iou_thresh) {
+pair<vector<vector<float>>, Mat> YOLOV5SEG::getResult(float conf_thresh, float iou_thresh) {
     vector<vector<float>> boxes;
-    vector<vector<float>> mask;
+    Mat mask;
     if (rknn_outputs_get(ctx, io_num.n_output, outputs.data(), NULL))
         return {boxes, mask};
     this->postprocess(boxes, mask, conf_thresh, iou_thresh);

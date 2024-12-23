@@ -308,10 +308,10 @@ void YOLOV5SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
     }
 
     // Resize Matrix
-    vector<Mat> mats(segments.size());
+    vector<Mat> box_masks(segments.size());
     for (int i = 0; i < segments.size(); i++) {
         Mat data(proto_height, proto_width, CV_32F, mat[i].data());
-        resize(data, mats[i], Size(width, height), 0, 0, INTER_LINEAR);
+        resize(data, box_masks[i], Size(width, height), 0, 0, INTER_LINEAR);
     }
 
     // Get Origin Mask
@@ -325,7 +325,7 @@ void YOLOV5SEG::postprocess(vector<vector<float>>& boxes, vector<vector<float>>&
 
         Rect roi(Point(x1, y1), Point(x2, y2));
         Mat origin_mask_roi = origin_mask(roi);
-        Mat mat_roi = mats[i](roi);
+        Mat mat_roi = box_masks[i](roi);
 
         Mat mask_mat_set = (mat_roi > 0);
         Mat mask_mat_copy = (origin_mask_roi < 0);

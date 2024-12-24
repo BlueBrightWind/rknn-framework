@@ -187,7 +187,7 @@ void YOLOV8SEG::postprocess(vector<vector<float>>& boxes, Mat& mask, float conf_
                     int segment_length = output_attrs[seg_index].dims[1];
                     vector<float> segment_tensor(segment_length);
                     for (int k = 0; k < segment_length; k++)
-                        segment_tensor[k] = deqntAffineToFp32(seg[index + k * grid_length], position_zp, position_scale);
+                        segment_tensor[k] = deqntAffineToFp32(seg[index + k * grid_length], seg_zp, seg_scale);
                     segments_all.push_back(segment_tensor);
                 }
             }

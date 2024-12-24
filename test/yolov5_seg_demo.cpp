@@ -9,7 +9,7 @@ using namespace std;
 using namespace cv;
 using namespace chrono;
 
-static string model_path = "../weights/yolov5s-seg.rknn";
+static string model_path = "../weights/yolov5s-seg-quantify.rknn";
 static string image_path = "../images/bus.jpg";
 static int repeat_times = 100;
 
